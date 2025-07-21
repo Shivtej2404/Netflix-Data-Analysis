@@ -24,6 +24,9 @@ df['day'] = df['date_added'].dt.day
 
 # Preview cleaned data
 print(df.info())
+df.to_csv("netflix_cleaned_final.csv", index=False)
+print("Cleaned CSV saved as netflix_cleaned_final.csv")
+
 
 #content type distribution 
 plt.figure(figsize=(6, 4))
