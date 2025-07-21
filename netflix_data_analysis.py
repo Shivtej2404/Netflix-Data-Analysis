@@ -1,96 +1,106 @@
-
-# Netflix Data Analysis Project
-
-## Step 1: Import Libraries
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from wordcloud import WordCloud
 
-sns.set(style='whitegrid')
-
-## Step 2: Load Dataset
-df = pd.read_csv('netflix_titles.csv')
-print("Dataset Loaded Successfully!")
-df.head()
-
-## Step 3: Data Cleaning
-# Check for missing values
-print(df.isnull().sum())
+# Load the dataset
+df = pd.read_csv("netflix.csv")
+print(df.head())
 
 # Drop duplicates
 df.drop_duplicates(inplace=True)
 
-# Drop rows with missing critical values
-df.dropna(subset=['director', 'cast', 'country'], inplace=True)
-
-# Convert 'date_added' to datetime
+# Convert date column
 df['date_added'] = pd.to_datetime(df['date_added'])
 
-# Show data types
-print(df.dtypes)
+# Handle missing values
+df.dropna(subset=['director', 'country'], inplace=True)
 
-## Step 4: Exploratory Data Analysis (EDA)
+# Extract year, month, day
+df['year'] = df['date_added'].dt.year
+df['month'] = df['date_added'].dt.month
+df['day'] = df['date_added'].dt.day
 
-### 1. Distribution of Movies vs. TV Shows
+# Preview cleaned data
+print(df.info())
+
+#content type distribution 
 plt.figure(figsize=(6, 4))
-sns.countplot(x='type', data=df, palette='Set2')
-plt.title('Distribution of Content Type on Netflix')
-plt.xlabel('Type')
-plt.ylabel('Count')
-plt.show()
+sns.countplot(data=df, x='type', palette='Set2')
+plt.title("Content Type Distribution on Netflix")
+plt.xlabel("Type")
+plt.ylabel("Count")
+plt.tight_layout()
+plt.savefig("type_distribution.png")
+plt.close()
 
-### 2. Top 10 Genres
-df['genres'] = df['listed_in'].apply(lambda x: x.split(', '))
+# top 10 genres
+df['genres'] = df['listed_in'].apply(lambda x: x.split(', ') if isinstance(x, str) else [])
 all_genres = sum(df['genres'], [])
 genre_counts = pd.Series(all_genres).value_counts().head(10)
 
-plt.figure(figsize=(8, 5))
+plt.figure(figsize=(10, 6))
 sns.barplot(x=genre_counts.values, y=genre_counts.index, palette='Set3')
-plt.title('Top 10 Genres on Netflix')
-plt.xlabel('Count')
-plt.ylabel('Genres')
-plt.show()
+plt.title("Top 10 Genres on Netflix")
+plt.xlabel("Count")
+plt.ylabel("Genre")
+plt.tight_layout()
+plt.savefig("top_genres.png")
+plt.close()
 
-### 3. Content Added Over the Years
-df['year_added'] = df['date_added'].dt.year
+#rating 
+rating_counts = df['rating'].value_counts().head(10)
 
-plt.figure(figsize=(10, 5))
-sns.countplot(x='year_added', data=df, palette='coolwarm')
-plt.title('Content Added Over the Years')
-plt.xlabel('Year')
-plt.ylabel('Count')
+plt.figure(figsize=(10, 6))
+sns.barplot(x=rating_counts.index, y=rating_counts.values, palette='Set1')
+plt.title("Rating Distribution")
+plt.xlabel("Rating")
+plt.ylabel("Frequency")
+plt.tight_layout()
+plt.savefig("rating_distribution.png")
+plt.close()
+
+#top 10 countries
+country_counts = df['country'].value_counts().head(10)
+
+plt.figure(figsize=(10, 6))
+sns.barplot(x=country_counts.values, y=country_counts.index, palette='viridis')
+plt.title("Top 10 Countries by Content")
+plt.xlabel("Number of Titles")
+plt.ylabel("Country")
+plt.tight_layout()
+plt.savefig("top_countries.png")
+plt.close()
+
+#yearly addition 
+plt.figure(figsize=(12, 6))
+sns.countplot(data=df, x='year', palette='coolwarm')
+plt.title("Content Added Over the Years")
 plt.xticks(rotation=45)
-plt.show()
+plt.tight_layout()
+plt.savefig("yearly_additions.png")
+plt.close()
 
-### 4. Top 10 Directors
-top_directors = df['director'].value_counts().head(10)
-
-plt.figure(figsize=(10, 5))
-sns.barplot(x=top_directors.values, y=top_directors.index, palette='Blues_d')
-plt.title('Top 10 Directors with Most Titles on Netflix')
-plt.xlabel('Number of Titles')
-plt.ylabel('Director')
-plt.show()
-
-### 5. Word Cloud of Movie Titles
-titles = ' '.join(df[df['type'] == 'Movie']['title'].dropna())
-wordcloud = WordCloud(width=800, height=400, background_color='black').generate(titles)
+#word cloud of titles
+titles = ' '.join(df['title'].dropna().tolist())
+wordcloud = WordCloud(width=1000, height=400, background_color='black').generate(titles)
 
 plt.figure(figsize=(10, 5))
 plt.imshow(wordcloud, interpolation='bilinear')
 plt.axis('off')
-plt.title('Word Cloud of Movie Titles')
-plt.show()
+plt.tight_layout()
+plt.savefig("wordcloud_titles.png")
+plt.close()
 
-## Step 5: Conclusion
+#top 10 directors
+top_directors = df['director'].value_counts().head(10)
 
-print("""
-Insights:
-- Most content on Netflix is Movies.
-- TV-MA and TV-14 are the most common ratings.
-- United States and India produce the most Netflix content.
-- The most active period for new content was 2018–2020.
-- Top directors include Rajiv Chilaka, Raúl Campos, and Steven Spielberg.
-""")
+plt.figure(figsize=(10, 6))
+sns.barplot(x=top_directors.values, y=top_directors.index, palette='cubehelix')
+plt.title("Top 10 Directors on Netflix")
+plt.xlabel("Number of Titles")
+plt.ylabel("Director")
+plt.tight_layout()
+plt.savefig("top_directors.png")
+plt.close()
